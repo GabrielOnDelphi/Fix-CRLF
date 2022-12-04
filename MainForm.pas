@@ -1,14 +1,15 @@
 UNIT MainForm;
 
-{ Replaces solitary CR characters with "normal" Windows enter (CRLF)
-  Replaces solitary LF characters with "normal" Windows enter (CRLF)
+{
+This tool replaces solitary CR or LF characters with "normal" Windows CRLF.
+Binary DFM files are automatically recognised and skipped.
 }
 
 INTERFACE
 
 USES
   Winapi.Windows, Winapi.messages, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ExtCtrls, cFindInFile, Vcl.Mask, Vcl.Menus, Vcl.CheckLst, System.ImageList, Vcl.ImgList, ccCore,
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Mask, Vcl.Menus, Vcl.CheckLst, System.ImageList, Vcl.ImgList, ccCore,
   InternetLabel;
 
 TYPE
@@ -23,7 +24,6 @@ TYPE
     ImageList1    : TImageList;
     Label1        : TLabel;
     lblCurFile    : TLabel;
-    lbxResults    : TListBox;
     mmoView       : TMemo;
     open1         : TMenuItem;
     Panel1        : TPanel;
@@ -36,12 +36,9 @@ TYPE
     procedure btnStartClick(Sender: TObject);
     procedure FormCreate   (Sender: TObject);
     procedure FormDestroy  (Sender: TObject);
-    procedure lbxResultsDblClick(Sender: TObject);
-    procedure Copyfilename1Click(Sender: TObject);
     procedure btnFiltersClick   (Sender: TObject);
   private
     FilterCount: Integer;
-    function GetSelectedSearch: TSearchResult;
     procedure FreeResults;
     procedure LateInitialize(VAR message: TMessage); message MSG_LateInitialize;
   end;
@@ -84,9 +81,6 @@ end;
 
 procedure TfrmMain.FreeResults;
 begin
- for VAR i:= 0 to lbxResults.Items.Count -1 do
-    FreeAndNil(lbxResults.Items.Objects[i]);          { Release list and owned objects }
- lbxResults.Clear;
 end;
 
 
@@ -144,25 +138,6 @@ begin
 end;
 
 
-{ Returns the object selected by the user }
-function TfrmMain.GetSelectedSearch: TSearchResult;
-begin
- Result:= lbxResults.Items.Objects[lbxResults.ItemIndex] as TSearchResult;
-end;
-
-
-
-procedure TfrmMain.lbxResultsDblClick(Sender: TObject);
-begin
- lblCurFile.Caption:= GetSelectedSearch.FileName;
- mmoView.Lines.LoadFromFile(GetSelectedSearch.FileName);
-
- //Scroll to first found pos
- var CurLine:= GetSelectedSearch.Positions[0];
- SendMessage(mmoView.Handle, EM_LINESCROLL, 0, CurLine);
-end;
-
-
 procedure TfrmMain.btnFiltersClick(Sender: TObject);
 begin
  Inc(FilterCount);
@@ -175,12 +150,6 @@ begin
 
  if FilterCount >= 4
  then FilterCount:= 0;
-end;
-
-
-procedure TfrmMain.Copyfilename1Click(Sender: TObject);
-begin
- StringToClipboard(GetSelectedSearch.FileName);
 end;
 
 
